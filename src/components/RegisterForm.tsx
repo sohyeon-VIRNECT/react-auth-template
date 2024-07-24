@@ -1,97 +1,89 @@
-import { ChangeEvent, useCallback, useMemo, useState } from 'react'
-
 import { FormValues } from '@models/register'
 import { Link } from 'react-router-dom'
-import { BooleanPartial } from '@/types'
+import { useForm } from 'react-hook-form'
 
 export default function RegisterForm() {
-  const [formValues, setFormValues] = useState<FormValues>({
-    email: '',
-    password: '',
-    passwordConfirm: '',
-    nickname: '',
-  })
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    formState: { isValid, errors },
+  } = useForm<FormValues>()
 
-  const [touched, setTouched] = useState<BooleanPartial<FormValues>>({})
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
+  const onSubmit = (data: FormValues) => {
     // @TODO: 회원가입 처리
-    console.log('회원가입', formValues)
+    console.log('회원가입', data)
   }
 
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setFormValues((prevFormValues) => ({
-      ...prevFormValues,
-      [e.target.name]: e.target.value,
-    }))
-  }, [])
-
-  const handleBlur = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setTouched((prevTouched) => ({
-      ...prevTouched,
-      [e.target.name]: true,
-    }))
-  }, [])
-
-  const errors = useMemo(() => validate(formValues), [formValues])
-  const isAvailableSubmit = Object.keys(errors).length === 0
-
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <h1>회원가입</h1>
       <div>
         <label htmlFor="email">이메일</label>
         <input
           type="email"
-          name="email"
           id="email"
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
+          {...register('email', {
+            pattern: {
+              value:
+                /^[A-Za-z0-9]([-_.]?[A-Za-z0-9])*@[A-Za-z0-9]([-_.]?[A-Za-z0-9])*\.[A-Za-z]{2,3}$/,
+              message: '이메일 형식을 확인해주세요',
+            },
+            required: true,
+          })}
         />
-        {touched.email && errors.email && <p>{errors.email}</p>}
+        {errors.email && <p>{errors.email.message}</p>}
       </div>
       <div>
         <label htmlFor="password">비밀번호</label>
         <input
           type="password"
-          name="password"
           id="password"
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
+          {...register('password', {
+            minLength: {
+              value: 8,
+              message: '비밀번호를 8글자 이상 입력해주세요',
+            },
+            required: true,
+          })}
         />
-        {touched.password && errors.password && <p>{errors.password}</p>}
+        {errors.password && <p>{errors.password.message}</p>}
       </div>
       <div>
         <label htmlFor="passwordConfirm">비밀번호 확인</label>
         <input
           type="password"
-          name="passwordConfirm"
           id="passwordConfirm"
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
+          {...register('passwordConfirm', {
+            minLength: {
+              value: 8,
+              message: '비밀번호를 8글자 이상 입력해주세요',
+            },
+            validate: (value) => {
+              const { password } = getValues()
+              return password === value || '비밀번호가 일치하지 않습니다'
+            },
+            required: true,
+          })}
         />
-        {touched.passwordConfirm && errors.passwordConfirm && (
-          <p>{errors.passwordConfirm}</p>
-        )}
+        {errors.passwordConfirm && <p>{errors.passwordConfirm.message}</p>}
       </div>
       <div>
         <label htmlFor="nickname">닉네임</label>
         <input
           type="text"
-          name="nickname"
           id="nickname"
-          onChange={handleChange}
-          onBlur={handleBlur}
-          required
+          {...register('nickname', {
+            minLength: {
+              value: 2,
+              message: '닉네임을 2글자 이상 입력해주세요',
+            },
+            required: true,
+          })}
         />
-        {touched.nickname && errors.nickname && <p>{errors.nickname}</p>}
+        {errors.nickname && <p>{errors.nickname.message}</p>}
       </div>
-      <button type="submit" disabled={isAvailableSubmit === false}>
+      <button type="submit" disabled={isValid === false}>
         회원가입
       </button>
       <div>
@@ -101,31 +93,4 @@ export default function RegisterForm() {
       </div>
     </form>
   )
-}
-
-function validate(formValues: FormValues) {
-  let errors: Partial<FormValues> = {}
-
-  const emailValidRegex =
-    /^[A-Za-z0-9]([-_.]?[A-Za-z0-9])*@[A-Za-z0-9]([-_.]?[A-Za-z0-9])*\.[A-Za-z]{2,3}$/
-
-  if (!formValues.email?.match(emailValidRegex)) {
-    errors.email = '이메일 형식을 확인해주세요'
-  }
-
-  if (formValues.password.length < 8) {
-    errors.password = '비밀번호를 8글자 이상 입력해주세요'
-  }
-
-  if (formValues.passwordConfirm.length < 8) {
-    errors.passwordConfirm = '비밀번호를 8글자 이상 입력해주세요'
-  } else if (formValues.password !== formValues.passwordConfirm) {
-    errors.passwordConfirm = '비밀번호가 일치하지 않습니다'
-  }
-
-  if (formValues.nickname.length < 2) {
-    errors.nickname = '닉네임을 2글자 이상 입력해주세요'
-  }
-
-  return errors
 }
