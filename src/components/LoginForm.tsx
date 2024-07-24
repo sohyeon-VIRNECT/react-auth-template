@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useState } from 'react'
+import { ChangeEvent, useCallback, useMemo, useState } from 'react'
 
 import { FormValues } from '@models/signin'
 
@@ -21,6 +21,9 @@ export default function LoginForm() {
       [e.target.name]: e.target.value,
     }))
   }, [])
+
+  const errors = useMemo(() => validate(formValues), [formValues])
+  const isAvailableSubmit = Object.keys(errors).length === 0
 
   return (
     <form onSubmit={handleSubmit}>
@@ -45,7 +48,26 @@ export default function LoginForm() {
           required
         />
       </div>
-      <button type="submit">로그인</button>
+      <button type="submit" disabled={isAvailableSubmit === false}>
+        로그인
+      </button>
     </form>
   )
+}
+
+function validate(formValues: FormValues) {
+  let errors: Partial<FormValues> = {}
+
+  const emailValidRegex =
+    /^[A-Za-z0-9]([-_.]?[A-Za-z0-9])*@[A-Za-z0-9]([-_.]?[A-Za-z0-9])*\.[A-Za-z]{2,3}$/
+
+  if (!formValues.email?.match(emailValidRegex)) {
+    errors.email = '이메일 형식을 확인해주세요'
+  }
+
+  if (formValues.password.length < 8) {
+    errors.password = '비밀번호를 8글자 이상 입력해주세요'
+  }
+
+  return errors
 }
