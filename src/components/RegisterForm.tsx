@@ -97,5 +97,15 @@ function validate(formValues: FormValues) {
     errors.password = '비밀번호를 8글자 이상 입력해주세요'
   }
 
+  if (formValues.passwordConfirm.length < 8) {
+    errors.passwordConfirm = '비밀번호를 8글자 이상 입력해주세요'
+  } else if (formValues.password !== formValues.passwordConfirm) {
+    errors.passwordConfirm = '비밀번호가 일치하지 않습니다'
+  }
+
+  if (formValues.nickname.length < 2) {
+    errors.nickname = '닉네임을 2글자 이상 입력해주세요'
+  }
+
   return errors
 }
