@@ -1,6 +1,6 @@
 import { ChangeEvent, useCallback, useState } from 'react'
 
-import { FormValues } from '@/models/signin'
+import { FormValues } from '@models/signin'
 
 export default function LoginForm() {
   const [formValues, setFormValues] = useState<FormValues>({
