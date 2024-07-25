@@ -1,13 +1,27 @@
 import { FormValues } from '@models/signin'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
+import * as z from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+
+const schema = z.object({
+  email: z
+    .string()
+    .regex(
+      /^[A-Za-z0-9]([-_.]?[A-Za-z0-9])*@[A-Za-z0-9]([-_.]?[A-Za-z0-9])*\.[A-Za-z]{2,3}$/,
+      '이메일 형식을 확인해주세요',
+    ),
+  password: z
+    .string()
+    .min(8, { message: '비밀번호를 8글자 이상 입력해주세요' }),
+})
 
 export default function LoginForm() {
   const {
     register,
     handleSubmit,
     formState: { isValid },
-  } = useForm<FormValues>()
+  } = useForm<FormValues>({ resolver: zodResolver(schema) })
 
   const onSubmit = (data: FormValues) => {
     // @TODO: 로그인 처리
@@ -19,32 +33,11 @@ export default function LoginForm() {
       <h1>로그인</h1>
       <div>
         <label htmlFor="email">이메일</label>
-        <input
-          type="email"
-          id="email"
-          {...register('email', {
-            pattern: {
-              value:
-                /^[A-Za-z0-9]([-_.]?[A-Za-z0-9])*@[A-Za-z0-9]([-_.]?[A-Za-z0-9])*\.[A-Za-z]{2,3}$/,
-              message: '이메일 형식을 확인해주세요',
-            },
-            required: true,
-          })}
-        />
+        <input type="email" id="email" {...register('email')} />
       </div>
       <div>
         <label htmlFor="password">비밀번호</label>
-        <input
-          type="password"
-          id="password"
-          {...register('password', {
-            minLength: {
-              value: 8,
-              message: '비밀번호를 8글자 이상 입력해주세요',
-            },
-            required: true,
-          })}
-        />
+        <input type="password" id="password" {...register('password')} />
       </div>
       <button type="submit" disabled={isValid === false}>
         로그인
