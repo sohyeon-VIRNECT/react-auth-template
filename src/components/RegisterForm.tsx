@@ -4,6 +4,19 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 
+yup.addMethod(yup.string, 'sequence', function (functionList) {
+  return this.test(async (value, context) => {
+    try {
+      for (const func of functionList) {
+        await func().validate(value)
+      }
+    } catch (error: any) {
+      return context.createError({ message: error.message })
+    }
+    return true
+  })
+})
+
 const schema = yup.object().shape({
   email: yup
     .string()
@@ -12,16 +25,28 @@ const schema = yup.object().shape({
       '이메일 형식을 확인해주세요',
     )
     .required(),
+
   password: yup
     .string()
     .min(8, '비밀번호를 8글자 이상 입력해주세요')
     .required(),
 
+  // passwordConfirm: yup
+  //   .string()
+  //   .min(8, '비밀번호를 8글자 이상 입력해주세요')
+  //   .oneOf([yup.ref('password')], '비밀번호가 일치하지 않습니다.')
+  //   .required(),
   passwordConfirm: yup
     .string()
-    .min(8, '비밀번호를 8글자 이상 입력해주세요')
-    .oneOf([yup.ref('password')], '비밀번호가 일치하지 않습니다.')
+    .sequence([
+      () => yup.string().min(8, '비밀번호를 8글자 이상 입력해주세요'),
+      () =>
+        yup
+          .string()
+          .oneOf([yup.ref('password')], '비밀번호가 일치하지 않습니다.'),
+    ])
     .required(),
+
   nickname: yup.string().min(2, '닉네임을 2글자 이상 입력해주세요').required(),
 })
 
